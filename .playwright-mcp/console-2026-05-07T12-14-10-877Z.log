@@ -1,0 +1,45 @@
+[     158ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:21548
+[     289ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/:0
+[  161718ms] TypeError: Cannot read properties of undefined (reading 'x')
+    at TCGCard (http://localhost:5173/src/App.jsx?t=1778156212107:720:53)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:11546:26)
+    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:14580:28)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:15922:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3672:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3697:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3731:39)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19763:15)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19196:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19135:13)
+[  161728ms] TypeError: Cannot read properties of undefined (reading 'x')
+    at TCGCard (http://localhost:5173/src/App.jsx?t=1778156212107:720:53)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:11546:26)
+    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:14580:28)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:15922:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3672:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3697:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3731:39)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19763:15)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19196:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19135:13)
+[  161730ms] [ERROR] The above error occurred in the <TCGCard> component:
+
+    at TCGCard (http://localhost:5173/src/App.jsx?t=1778156212107:629:20)
+    at div
+    at div
+    at App (http://localhost:5173/src/App.jsx?t=1778156212107:1039:27)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:14029
+[  161741ms] TypeError: Cannot read properties of undefined (reading 'x')
+    at TCGCard (http://localhost:5173/src/App.jsx?t=1778156212107:720:53)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:11546:26)
+    at updateFunctionComponent (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:14580:28)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:15922:22)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19751:22)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19196:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19135:13)
+    at renderRootSync (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19114:15)
+    at recoverFromConcurrentError (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:18734:28)
+    at performSyncWorkOnRoot (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:18877:28)
+[  171735ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/:0

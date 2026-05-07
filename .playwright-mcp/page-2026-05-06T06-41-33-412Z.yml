@@ -1,0 +1,7 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]: Carte de base (référence)
+    - img [ref=e4]
+  - generic [ref=e5]:
+    - generic [ref=e6]: Carte_Vierge (template)
+    - img [ref=e7]

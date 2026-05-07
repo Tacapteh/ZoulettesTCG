@@ -1,0 +1,70 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]: Profils
+    - generic [ref=e209]:
+      - generic [ref=e210]: Familles de cartes
+      - generic [ref=e211]:
+        - generic [ref=e212]:
+          - generic [ref=e213]: Guerrier
+          - generic [ref=e214] [cursor=pointer]: ×
+        - generic [ref=e215]:
+          - generic [ref=e216]: Mage
+          - generic [ref=e217] [cursor=pointer]: ×
+        - generic [ref=e218]:
+          - generic [ref=e219]: Voleur
+          - generic [ref=e220] [cursor=pointer]: ×
+        - generic [ref=e221]:
+          - generic [ref=e222]: Berserker
+          - generic [ref=e223] [cursor=pointer]: ×
+        - generic [ref=e224]:
+          - generic [ref=e225]: Capitaine
+          - generic [ref=e226] [cursor=pointer]: ×
+        - generic [ref=e227]:
+          - generic [ref=e228]: Marine
+          - generic [ref=e229] [cursor=pointer]: ×
+        - generic [ref=e230]:
+          - generic [ref=e231]: Pirate
+          - generic [ref=e232] [cursor=pointer]: ×
+        - generic [ref=e233]:
+          - generic [ref=e234]: Chasseur
+          - generic [ref=e235] [cursor=pointer]: ×
+        - generic [ref=e236]:
+          - generic [ref=e237]: Génie
+          - generic [ref=e238] [cursor=pointer]: ×
+        - generic [ref=e239]:
+          - generic [ref=e240]: Robot
+          - generic [ref=e241] [cursor=pointer]: ×
+        - generic [ref=e242]:
+          - generic [ref=e243]: Sage
+          - generic [ref=e244] [cursor=pointer]: ×
+      - generic [ref=e245]:
+        - textbox "Nouvelle famille…" [ref=e246]
+        - button "+" [ref=e247] [cursor=pointer]
+    - generic [ref=e248]:
+      - generic [ref=e249]: + Nouveau profil
+      - generic [ref=e250]:
+        - 'textbox "Pseudo (ex: Kévin)" [ref=e251]'
+        - textbox "Bio courte…" [ref=e252]
+        - button "Créer le profil" [ref=e253] [cursor=pointer]
+    - generic [ref=e255]:
+      - generic [ref=e257]: 👤
+      - generic [ref=e258]: Le Chich
+      - generic [ref=e259]: Dev boss.
+      - generic [ref=e260]: 0 cartes
+      - generic [ref=e261]: Ajouter une photo
+      - generic [ref=e262]:
+        - button "📁 Galerie" [ref=e263] [cursor=pointer]
+        - button "📷 Caméra" [ref=e264] [cursor=pointer]
+  - navigation [ref=e265]:
+    - button "🃏 Cartes" [ref=e266] [cursor=pointer]:
+      - generic [ref=e267]: 🃏
+      - generic [ref=e268]: Cartes
+    - button "✏️ Créer" [ref=e269] [cursor=pointer]:
+      - generic [ref=e270]: ✏️
+      - generic [ref=e271]: Créer
+    - button "👥 Profils" [ref=e272] [cursor=pointer]:
+      - generic [ref=e273]: 👥
+      - generic [ref=e274]: Profils
+    - button "🚪 Admin" [ref=e275] [cursor=pointer]:
+      - generic [ref=e276]: 🚪
+      - generic [ref=e277]: Admin

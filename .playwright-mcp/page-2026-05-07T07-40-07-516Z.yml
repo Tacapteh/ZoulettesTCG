@@ -1,0 +1,144 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e17]: NOUVELLE CARTE
+      - generic [ref=e35]:
+        - button "✕" [ref=e36] [cursor=pointer]
+        - button "✓ Sauver" [ref=e37] [cursor=pointer]
+    - generic [ref=e6]:
+      - button "✏️ Formulaire" [ref=e38] [cursor=pointer]
+      - button "👁 Aperçu" [ref=e39] [cursor=pointer]
+  - generic [ref=e40]:
+    - generic [ref=e41]: Identité
+    - generic [ref=e42]:
+      - generic [ref=e43]: Nom de la carte
+      - 'textbox "Ex: Le Chich" [ref=e44]'
+    - generic [ref=e45]:
+      - generic [ref=e46]: Famille
+      - combobox [ref=e47]:
+        - option "— Aucune —" [selected]
+        - option "Guerrier"
+        - option "Mage"
+        - option "Voleur"
+        - option "Berserker"
+        - option "Capitaine"
+        - option "Marine"
+        - option "Pirate"
+        - option "Chasseur"
+        - option "Génie"
+        - option "Robot"
+        - option "Sage"
+    - generic [ref=e48]:
+      - generic [ref=e49]: Rareté
+      - combobox [ref=e50]:
+        - option "Commune" [selected]
+        - option "Rare"
+        - option "Super Rare"
+        - option "Épique"
+        - option "Légendaire"
+    - generic [ref=e51]:
+      - generic [ref=e52]: Profil
+      - combobox [ref=e53]:
+        - option "— Aucun —" [selected]
+        - option "Le Chich"
+    - generic [ref=e54]: Zones SVG
+    - generic [ref=e56]:
+      - 'generic "Original: #000000" [ref=e57]'
+      - generic [ref=e58]: Cadre principal
+      - textbox [ref=e59] [cursor=pointer]: "#000000"
+    - generic [ref=e60]: Textbox & Textes
+    - generic [ref=e61]:
+      - generic [ref=e62]: 📝 Fond textbox
+      - textbox [ref=e64] [cursor=pointer]: "#000000"
+    - generic [ref=e76]:
+      - generic [ref=e77]: Opacité textbox — 85%
+      - generic [ref=e78]:
+        - slider [ref=e79]: "85"
+        - generic [ref=e80]: 85%
+    - generic [ref=e81]:
+      - generic [ref=e82]: 🖊 Bordure textes
+      - textbox [ref=e84] [cursor=pointer]: "#ffffff"
+    - generic [ref=e93]:
+      - generic [ref=e94]: Épaisseur bordure — 2px
+      - generic [ref=e95]:
+        - slider [ref=e96]: "2"
+        - generic [ref=e97]: "2"
+    - generic [ref=e98]: Photo
+    - textbox "URL image…" [ref=e99]
+    - generic [ref=e100]:
+      - button "📁 Galerie" [ref=e101] [cursor=pointer]
+      - button "📷 Caméra" [ref=e102] [cursor=pointer]
+    - generic [ref=e103]: Évolution
+    - generic [ref=e104]:
+      - checkbox "Carte Évolution" [ref=e105] [cursor=pointer]
+      - generic [ref=e106] [cursor=pointer]: Carte Évolution
+    - generic [ref=e107]: Stats
+    - generic [ref=e108]:
+      - generic [ref=e109]: ❤️ PV — 80
+      - generic [ref=e110]:
+        - slider [ref=e111]: "80"
+        - generic [ref=e112]: "80"
+    - generic [ref=e113]:
+      - generic [ref=e114]: ⚔️ ATK — 50
+      - generic [ref=e115]:
+        - slider [ref=e116]: "50"
+        - generic [ref=e117]: "50"
+    - generic [ref=e118]:
+      - generic [ref=e119]: 🛡 DEF — 40
+      - generic [ref=e120]:
+        - slider [ref=e121]: "40"
+        - generic [ref=e122]: "40"
+    - generic [ref=e123]: Capacité
+    - generic [ref=e124]:
+      - generic [ref=e125]: Nom
+      - 'textbox "Ex: Haki des Rois" [ref=e126]'
+    - generic [ref=e127]:
+      - generic [ref=e128]: Description
+      - textbox [ref=e129]
+    - generic [ref=e130]: Attaque 1
+    - generic [ref=e131]:
+      - generic [ref=e133]:
+        - generic [ref=e134]: Nom
+        - textbox [ref=e135]
+      - generic [ref=e137]:
+        - generic [ref=e138]: Dmg
+        - spinbutton [ref=e139]: "30"
+    - generic [ref=e140]:
+      - generic [ref=e141]: Description
+      - textbox [ref=e142]
+    - generic [ref=e143]: Attaque 2
+    - generic [ref=e144]:
+      - generic [ref=e146]:
+        - generic [ref=e147]: Nom
+        - textbox [ref=e148]
+      - generic [ref=e150]:
+        - generic [ref=e151]: Dmg
+        - spinbutton [ref=e152]: "60"
+    - generic [ref=e153]:
+      - generic [ref=e154]: Description
+      - textbox [ref=e155]
+    - generic [ref=e156]: Finitions
+    - generic [ref=e157]:
+      - generic [ref=e158]: Flavor text
+      - textbox "\"Une phrase mémorable...\"" [ref=e159]
+    - generic [ref=e160]:
+      - generic [ref=e162]:
+        - generic [ref=e163]: N° carte
+        - textbox [ref=e164]: "001"
+      - generic [ref=e166]:
+        - generic [ref=e167]: Total
+        - textbox [ref=e168]: "060"
+    - button "⬇ EXPORT PNG" [ref=e169] [cursor=pointer]
+  - navigation [ref=e170]:
+    - button "🃏 Cartes" [ref=e171] [cursor=pointer]:
+      - generic [ref=e172]: 🃏
+      - generic [ref=e173]: Cartes
+    - button "✏️ Créer" [ref=e174] [cursor=pointer]:
+      - generic [ref=e175]: ✏️
+      - generic [ref=e176]: Créer
+    - button "👥 Profils" [ref=e177] [cursor=pointer]:
+      - generic [ref=e178]: 👥
+      - generic [ref=e179]: Profils
+    - button "🚪 Admin" [ref=e180] [cursor=pointer]:
+      - generic [ref=e181]: 🚪
+      - generic [ref=e182]: Admin

@@ -1,0 +1,15 @@
+- generic [ref=e4]:
+  - generic [ref=e5]: 🃏
+  - generic [ref=e6]: SQUAD TCG
+  - generic [ref=e7]: CARD FORGE
+  - generic [ref=e8]:
+    - generic [ref=e9]: ADMIN — CRÉATION
+    - textbox "Mot de passe…" [ref=e10]
+    - button "ENTRER →" [ref=e11] [cursor=pointer]
+  - generic [ref=e12]: — ou —
+  - generic [ref=e13]:
+    - generic [ref=e14]: POTE — VOIR LA COLLECTION
+    - combobox [ref=e15]:
+      - option "— Choisir ton profil —" [selected]
+      - option "Le Chich"
+    - button "ACCÉDER →" [ref=e16] [cursor=pointer]

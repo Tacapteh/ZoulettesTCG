@@ -1,0 +1,21 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e17]:
+      - generic [ref=e18]: Collection
+      - generic [ref=e19]: 0 cartes
+    - generic [ref=e6]:
+      - generic [ref=e20]: 🃏
+      - generic [ref=e21]: Crée ta première carte !
+  - navigation [ref=e22]:
+    - button "🃏 Cartes" [ref=e23] [cursor=pointer]:
+      - generic [ref=e24]: 🃏
+      - generic [ref=e25]: Cartes
+    - button "✏️ Créer" [ref=e26] [cursor=pointer]:
+      - generic [ref=e27]: ✏️
+      - generic [ref=e28]: Créer
+    - button "👥 Profils" [ref=e29] [cursor=pointer]:
+      - generic [ref=e30]: 👥
+      - generic [ref=e31]: Profils
+    - button "🚪 Admin" [ref=e32] [cursor=pointer]:
+      - generic [ref=e33]: 🚪
+      - generic [ref=e34]: Admin

@@ -1,0 +1,30 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img [ref=e3]
+    - img:
+      - generic:
+        - generic: "100"
+        - generic: "200"
+        - generic: "300"
+        - generic: "400"
+        - generic: "500"
+        - generic: "600"
+        - generic: "700"
+        - generic: "800"
+        - generic: "100"
+        - generic: "200"
+        - generic: "300"
+        - generic: "400"
+        - generic: "500"
+        - generic: "600"
+      - generic: PHOTO ZONE
+      - generic: TEXTBOX
+      - generic: RARITY
+      - generic: NOM x52,y46
+      - generic: PV x600,y46
+      - generic: ATKlbl x20,y784
+      - generic: ATK x20,y812
+      - generic: DEFlbl x600,y784
+      - generic: DEF x600,y812
+      - generic: FAM x592,y300
+  - img [ref=e5]

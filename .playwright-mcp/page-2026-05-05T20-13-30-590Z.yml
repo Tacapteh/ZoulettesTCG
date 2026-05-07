@@ -1,0 +1,37 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e17]: NOUVELLE CARTE
+      - generic [ref=e35]:
+        - button "✕" [ref=e36] [cursor=pointer]
+        - button "✓ Sauver" [ref=e37] [cursor=pointer]
+    - generic [ref=e6]:
+      - button "✏️ Formulaire" [ref=e38] [cursor=pointer]
+      - button "👁 Aperçu" [active] [ref=e39] [cursor=pointer]
+  - generic [ref=e197]:
+    - generic [ref=e198]: Aperçu temps réel
+    - img [ref=e200]:
+      - generic [ref=e203]: COMMUNE
+      - generic [ref=e204]: 001/060
+      - generic [ref=e205]: Nom de la carte
+      - generic [ref=e206]: "80"
+      - generic [ref=e207]: PV
+      - generic [ref=e208]: Zone de texte
+      - generic [ref=e209]: ATK
+      - generic [ref=e210]: "50"
+      - generic [ref=e211]: DEF
+      - generic [ref=e212]: "40"
+    - generic [ref=e213]: 617 × 842 px · SVG
+  - navigation [ref=e214]:
+    - button "🃏 Cartes" [ref=e215] [cursor=pointer]:
+      - generic [ref=e216]: 🃏
+      - generic [ref=e217]: Cartes
+    - button "✏️ Créer" [ref=e218] [cursor=pointer]:
+      - generic [ref=e219]: ✏️
+      - generic [ref=e220]: Créer
+    - button "👥 Profils" [ref=e221] [cursor=pointer]:
+      - generic [ref=e222]: 👥
+      - generic [ref=e223]: Profils
+    - button "🚪 Admin" [ref=e224] [cursor=pointer]:
+      - generic [ref=e225]: 🚪
+      - generic [ref=e226]: Admin

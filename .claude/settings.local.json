@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\theoc\\\\Desktop\\\\TCG\\\\src\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\theoc\\\\Desktop\\\\TCG\\\\public\")"
+    ]
+  }
+}

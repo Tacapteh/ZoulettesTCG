@@ -1,0 +1,46 @@
+[      79ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:21548
+[     208ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/favicon.ico:0
+[     275ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/:0
+[ 1156109ms] ReferenceError: col is not defined
+    at TCGCard (http://localhost:5173/src/App.jsx?t=1778139442927:450:92)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:11546:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:14924:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:15912:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3672:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3697:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3731:39)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19763:15)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19196:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19135:13)
+[ 1156112ms] ReferenceError: col is not defined
+    at TCGCard (http://localhost:5173/src/App.jsx?t=1778139442927:450:92)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:11546:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:14924:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:15912:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3672:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3697:24)
+    at invokeGuardedCallback (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:3731:39)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19763:15)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19196:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19135:13)
+[ 1156114ms] [ERROR] The above error occurred in the <TCGCard> component:
+
+    at TCGCard (http://localhost:5173/src/App.jsx?t=1778139442927:388:20)
+    at div
+    at div
+    at App (http://localhost:5173/src/App.jsx?t=1778139442927:758:27)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:14029
+[ 1156116ms] ReferenceError: col is not defined
+    at TCGCard (http://localhost:5173/src/App.jsx?t=1778139442927:450:92)
+    at renderWithHooks (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:11546:26)
+    at mountIndeterminateComponent (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:14924:21)
+    at beginWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:15912:22)
+    at beginWork$1 (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19751:22)
+    at performUnitOfWork (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19196:20)
+    at workLoopSync (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19135:13)
+    at renderRootSync (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:19114:15)
+    at recoverFromConcurrentError (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:18734:28)
+    at performSyncWorkOnRoot (http://localhost:5173/node_modules/.vite/deps/chunk-373CG7ZK.js?v=5312d0cf:18877:28)
+[ 1172178ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/:0
