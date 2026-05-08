@@ -15,3 +15,4 @@ Card model: `BLANK` object. SVG viewBox: 616.5×841.5. Scale via `VW`/`VH` const
 - Edits over rewrites.
 - No comments in code.
 - French for UI strings, English for code.
+- Each task: commit + push + open new PR.
