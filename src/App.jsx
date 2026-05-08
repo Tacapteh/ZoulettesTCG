@@ -391,6 +391,8 @@ const T = {
 const getTb=card=>({x:card.tbX??Z.textbox.x,y:card.tbY??Z.textbox.y,w:card.tbW??Z.textbox.w,h:card.tbH??Z.textbox.h,rx:Z.textbox.rx});
 const getPos=card=>({
   nom:    {x:card.nomX??T.nom.x,   y:card.nomY??T.nom.y},
+  pvVal:  {x:card.pvX??T.pvVal.x,  y:card.pvY??T.pvVal.y},
+  pvLbl:  {x:card.pvX??T.pvLbl.x,  y:(card.pvY??T.pvVal.y)+(T.pvLbl.y-T.pvVal.y)},
   atkLbl: {x:card.atkX??T.atkLbl.x,y:card.atkY??T.atkLbl.y},
   atkVal: {x:card.atkX??T.atkVal.x,y:(card.atkY??T.atkLbl.y)+(T.atkVal.y-T.atkLbl.y)},
   defLbl: {x:card.defX??T.defLbl.x,y:card.defY??T.defLbl.y},
@@ -418,8 +420,12 @@ const BLANK = {
   move1Name:"",move1Dmg:30,move1Desc:"",
   move2Name:"",move2Dmg:60,move2Desc:"",
   flavorText:"",cardNumber:"001",totalCards:"060",
-  tbX:null,tbY:null,tbW:null,tbH:null,
-  nomX:null,nomY:null,atkX:null,atkY:null,defX:null,defY:null,famX:null,famY:null,
+  tbX:null,tbY:null,tbW:null,tbH:null,tbRot:0,
+  nomX:null,nomY:null,nomScale:1,nomRot:0,
+  pvX:null,pvY:null,pvScale:1,pvRot:0,
+  atkX:null,atkY:null,atkScale:1,atkRot:0,
+  defX:null,defY:null,defScale:1,defRot:0,
+  famX:null,famY:null,famScale:1,famRot:0,
 };
 const INIT_PROFILES = [{id:"lechich",name:"Le Chich",bio:"Dev boss.",photos:[]}];
 const uid = () => Math.random().toString(36).slice(2,9);
@@ -490,60 +496,120 @@ function PhotoUploader({onPhoto}) {
 
 // ─── CARTE TCG ────────────────────────────────────────────────────────────────
 function TCGCard({card,scale=1,svgUrl="./Card_TCG.svg",editable=false,onUpdateTextbox}) {
-  const W=VW*scale, H=VH*scale;
+  const W=VW*scale,H=VH*scale;
   const clipId=`pc-${card.id||"p"}-${Math.round(scale*1000)}`;
-  const tbCol=card.textBoxColor||"#000";
-  const tbOp=card.textBoxOpacity??0.85;
-  const stCol=card.strokeColor||"#fff";
-  const stW=card.strokeWidth??2;
+  const tbCol=card.textBoxColor||"#000",tbOp=card.textBoxOpacity??0.85;
+  const stCol=card.strokeColor||"#fff",stW=card.strokeWidth??2;
   const rar=RARITIES.find(r=>r.id===card.rarityId)||RARITIES[0];
-  const isFullArt = ["R","L"].includes(card.rarityId);
-  const isLegendary = card.rarityId === "L";
+  const isFullArt=["R","L"].includes(card.rarityId),isLegendary=card.rarityId==="L";
   const dynamicUrl=useDynamicSvg(svgUrl,getContourColor(card),isFullArt);
   const bgSrc=dynamicUrl||svgUrl;
-  const svgRef=useRef();
-  const dragRef=useRef(null);
-  const cbRef=useRef(onUpdateTextbox);
+  const svgRef=useRef(),dragRef=useRef(null),cbRef=useRef(onUpdateTextbox);
   useEffect(()=>{cbRef.current=onUpdateTextbox;},[onUpdateTextbox]);
-  const tb=getTb(card);
-  const pos=getPos(card);
+  const [guides,setGuides]=useState({xs:[],ys:[]});
+
+  const tb=getTb(card),pos=getPos(card);
+  const tbCx=tb.x+tb.w/2,tbCy=tb.y+tb.h/2;
+  const atkCy=(pos.atkLbl.y+pos.atkVal.y)/2,defCy=(pos.defLbl.y+pos.defVal.y)/2;
+  const pvCy=(pos.pvVal.y+pos.pvLbl.y)/2;
+  const RAD=Math.PI/180;
+  const elXf=(cx,cy,r)=>r?`rotate(${r},${cx},${cy})`:undefined;
+  const rHnd=(cx,cy,r=0)=>({x:cx+40*Math.cos((r-90)*RAD),y:cy+40*Math.sin((r-90)*RAD)});
+  const sHnd=(cx,cy,r=0)=>({x:cx+38*Math.cos((r+45)*RAD),y:cy+38*Math.sin((r+45)*RAD)});
+
+  const refPts=useRef([]);
+  refPts.current=[
+    {k:'nom',x:pos.nom.x,y:pos.nom.y},
+    {k:'pv',x:pos.pvVal.x,y:pvCy},
+    {k:'atk',x:pos.atkLbl.x,y:atkCy},
+    {k:'def',x:pos.defLbl.x,y:defCy},
+    {k:'fam',x:pos.fam.x,y:pos.fam.y},
+    {k:'tb',x:tbCx,y:tbCy},
+    {k:'vcx',x:VW/2,y:null},{k:'vcy',x:null,y:VH/2},
+  ];
 
   useEffect(()=>{
     if(!editable)return;
     const pt=e=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return{x:0,y:0};const p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*VW/r.width,y:(p.clientY-r.top)*VH/r.height};};
+    const SNAP=5,GT=4,snap=v=>Math.round(v/SNAP)*SNAP;
     const mv=e=>{
       const d=dragRef.current;if(!d)return;
       if(e.cancelable)e.preventDefault();
       const{x,y}=pt(e);const dx=x-d.sx,dy=y-d.sy;
-      if(["move","se","sw","ne","nw"].includes(d.type)){
+      if(['move','se','sw','ne','nw'].includes(d.type)){
         let nx=d.ox,ny=d.oy,nw=d.ow,nh=d.oh;
-        if(d.type==="move"){nx=d.ox+dx;ny=d.oy+dy;}
-        else if(d.type==="se"){nw=Math.max(80,d.ow+dx);nh=Math.max(50,d.oh+dy);}
-        else if(d.type==="sw"){nx=d.ox+dx;nw=Math.max(80,d.ow-dx);nh=Math.max(50,d.oh+dy);}
-        else if(d.type==="ne"){ny=d.oy+dy;nw=Math.max(80,d.ow+dx);nh=Math.max(50,d.oh-dy);}
-        else if(d.type==="nw"){nx=d.ox+dx;ny=d.oy+dy;nw=Math.max(80,d.ow-dx);nh=Math.max(50,d.oh-dy);}
+        if(d.type==='move'){nx=d.ox+dx;ny=d.oy+dy;}
+        else if(d.type==='se'){nw=Math.max(80,d.ow+dx);nh=Math.max(50,d.oh+dy);}
+        else if(d.type==='sw'){nx=d.ox+dx;nw=Math.max(80,d.ow-dx);nh=Math.max(50,d.oh+dy);}
+        else if(d.type==='ne'){ny=d.oy+dy;nw=Math.max(80,d.ow+dx);nh=Math.max(50,d.oh-dy);}
+        else if(d.type==='nw'){nx=d.ox+dx;ny=d.oy+dy;nw=Math.max(80,d.ow-dx);nh=Math.max(50,d.oh-dy);}
+        setGuides({xs:[],ys:[]});
         cbRef.current?.({tbX:Math.round(nx),tbY:Math.round(ny),tbW:Math.round(nw),tbH:Math.round(nh)});
+      } else if(d.type.endsWith('-rot')){
+        const ang=Math.atan2(y-d.cy,x-d.cx)*180/Math.PI+90;
+        const key=d.type.slice(0,-4);
+        const k=key==='tb'?'tbRot':`${key}Rot`;
+        setGuides({xs:[],ys:[]});
+        cbRef.current?.({[k]:(((d.origRot+ang-d.startAngle)%360)+360)%360});
+      } else if(d.type.endsWith('-sz')){
+        const dist=Math.hypot(x-d.cx,y-d.cy);
+        const key=d.type.slice(0,-3);
+        const sc=Math.max(0.3,Math.min(4,d.origScale*dist/Math.max(1,d.startDist)));
+        setGuides({xs:[],ys:[]});
+        cbRef.current?.({[`${key}Scale`]:Math.round(sc*100)/100});
       } else {
-        cbRef.current?.({[`${d.type}X`]:Math.round(d.ox+dx),[`${d.type}Y`]:Math.round(d.oy+dy)});
+        let nx=snap(d.ox+dx),ny=snap(d.oy+dy);
+        const refs=refPts.current.filter(r=>r.k!==d.type);
+        const gxs=[],gys=[];
+        refs.forEach(r=>{
+          if(r.x!=null&&Math.abs(nx-r.x)<=GT){nx=r.x;gxs.push(r.x);}
+          if(r.y!=null&&Math.abs(ny-r.y)<=GT){ny=r.y;gys.push(r.y);}
+        });
+        setGuides({xs:gxs,ys:gys});
+        cbRef.current?.({[`${d.type}X`]:Math.round(nx),[`${d.type}Y`]:Math.round(ny)});
       }
     };
-    const up=()=>{dragRef.current=null;};
-    window.addEventListener("mousemove",mv);window.addEventListener("mouseup",up);
-    window.addEventListener("touchmove",mv,{passive:false});window.addEventListener("touchend",up);
-    return()=>{window.removeEventListener("mousemove",mv);window.removeEventListener("mouseup",up);window.removeEventListener("touchmove",mv);window.removeEventListener("touchend",up);};
+    const up=()=>{dragRef.current=null;setGuides({xs:[],ys:[]});};
+    window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+    window.addEventListener('touchmove',mv,{passive:false});window.addEventListener('touchend',up);
+    return()=>{window.removeEventListener('mousemove',mv);window.removeEventListener('mouseup',up);window.removeEventListener('touchmove',mv);window.removeEventListener('touchend',up);};
   },[editable]);
 
-  const startDrag=(type,ox,oy,e)=>{
+  const startDrag=(type,opts,e)=>{
     e.preventDefault();e.stopPropagation();
     const r=svgRef.current?.getBoundingClientRect();if(!r)return;
     const p=e.touches?e.touches[0]:e;
-    dragRef.current={type,sx:(p.clientX-r.left)*VW/r.width,sy:(p.clientY-r.top)*VH/r.height,ox,oy,ow:tb.w,oh:tb.h};
+    const sx=(p.clientX-r.left)*VW/r.width,sy=(p.clientY-r.top)*VH/r.height;
+    dragRef.current={type,sx,sy,...opts,
+      ...(type.endsWith('-rot')?{startAngle:Math.atan2(sy-opts.cy,sx-opts.cx)*180/Math.PI+90}:{}),
+      ...(type.endsWith('-sz')?{startDist:Math.hypot(sx-opts.cx,sy-opts.cy)}:{}),
+    };
   };
 
-  // Helper: texte avec stroke TCG
+  // handle set: move(dashed box) + rotate(circle) + scale(diamond) pour un élément texte
+  const TH=(key,cx,cy,rot,sc,mw,mh,clr)=>{
+    if(!editable)return null;
+    const{x:rhx,y:rhy}=rHnd(cx,cy,rot);
+    const{x:shx,y:shy}=sHnd(cx,cy,rot);
+    return(<g>
+      <g transform={elXf(cx,cy,rot)}>
+        <rect x={cx-mw/2} y={cy-mh/2} width={mw} height={mh} rx={3}
+          fill={`rgba(${clr},0.05)`} stroke={`rgba(${clr},0.75)`} strokeWidth={1} strokeDasharray="6 3"
+          style={{cursor:'move'}}
+          onMouseDown={e=>startDrag(key,{ox:cx,oy:cy},e)} onTouchStart={e=>startDrag(key,{ox:cx,oy:cy},e)}/>
+      </g>
+      <line x1={cx} y1={cy} x2={rhx} y2={rhy} stroke="rgba(255,255,255,0.35)" strokeWidth={0.7}/>
+      <circle cx={rhx} cy={rhy} r={5} fill="rgba(255,255,255,0.9)" stroke="#4a90d9" strokeWidth={1.5} style={{cursor:'crosshair'}}
+        onMouseDown={e=>startDrag(`${key}-rot`,{cx,cy,origRot:rot},e)} onTouchStart={e=>startDrag(`${key}-rot`,{cx,cy,origRot:rot},e)}/>
+      <rect x={shx-5} y={shy-5} width={10} height={10} rx={2}
+        fill={`rgba(${clr},0.9)`} stroke="#222" strokeWidth={1.5}
+        transform={`rotate(45,${shx},${shy})`} style={{cursor:'nwse-resize'}}
+        onMouseDown={e=>startDrag(`${key}-sz`,{cx,cy,origScale:sc},e)} onTouchStart={e=>startDrag(`${key}-sz`,{cx,cy,origScale:sc},e)}/>
+    </g>);
+  };
+
   const WT={fontFamily:"'Arial Black','Arial Bold',Arial,sans-serif",fontWeight:900,fill:"#ffffff",stroke:stCol,strokeWidth:stW,strokeLinejoin:"round",paintOrder:"stroke fill"};
 
-  // Lignes textbox (coordonnées relatives à tb)
   const lines=[];let ty=tb.y+36;
   if(card.ability){lines.push({b:true,t:`[${card.ability}]`,x:tb.x+16,y:ty,s:16});ty+=24;if(card.abilityDesc){lines.push({t:card.abilityDesc,x:tb.x+16,y:ty,s:13});ty+=20;}}
   [[card.move1Name,card.move1Dmg,card.move1Desc],[card.move2Name,card.move2Dmg,card.move2Desc]].forEach(([name,dmg,desc])=>{
@@ -556,126 +622,83 @@ function TCGCard({card,scale=1,svgUrl="./Card_TCG.svg",editable=false,onUpdateTe
   if(!lines.length)lines.push({ph:true,t:"Zone de texte",x:tb.x+tb.w/2,y:tb.y+tb.h/2,s:14,a:"middle"});
 
   const HS=10;
+  const tbRot=card.tbRot||0;
+  const nomRot=card.nomRot||0,nomSc=card.nomScale||1;
+  const pvRot=card.pvRot||0,pvSc=card.pvScale||1;
+  const atkRot=card.atkRot||0,atkSc=card.atkScale||1;
+  const defRot=card.defRot||0,defSc=card.defScale||1;
+  const famRot=card.famRot||0,famSc=card.famScale||1;
 
   return(
     <div style={{position:"relative",width:W,height:H,flexShrink:0,display:"inline-block",borderRadius:Math.round(28*scale),overflow:"hidden"}}>
-      {/* Full art: photo derrière le frame SVG */}
       {isFullArt&&card.photoUrl&&<img src={card.photoUrl} alt="" width={W} height={H} style={{position:"absolute",inset:0,display:"block",objectFit:"cover"}}/>}
-      {/* SVG template (Fond_Image neutralisé en full art) */}
       <img src={bgSrc} alt="" width={W} height={H} style={{position:"absolute",inset:0,display:"block"}}/>
-      {/* Foil overlay */}
-      {isFullArt&&<div style={{
-        position:"absolute",inset:0,
-        background:isLegendary
-          ?"linear-gradient(135deg,rgba(255,0,100,.28) 0%,rgba(255,190,0,.28) 17%,rgba(0,230,130,.28) 33%,rgba(0,90,255,.28) 50%,rgba(190,0,255,.28) 67%,rgba(255,0,100,.28) 100%)"
-          :"linear-gradient(135deg,rgba(255,255,255,.03) 0%,rgba(255,215,120,.09) 25%,rgba(120,215,255,.07) 50%,rgba(255,255,255,.03) 75%,rgba(190,255,190,.07) 100%)",
-        backgroundSize:isLegendary?"300% 300%":"200% 200%",
-        animation:isLegendary?"tcgFoilHeavy 2s linear infinite":"tcgFoilLight 4s linear infinite",
-        pointerEvents:"none",
-        mixBlendMode:"screen",
-        borderRadius:Math.round(28*scale),
-      }}/>}
+      {isFullArt&&<div style={{position:"absolute",inset:0,background:isLegendary?"linear-gradient(135deg,rgba(255,0,100,.28) 0%,rgba(255,190,0,.28) 17%,rgba(0,230,130,.28) 33%,rgba(0,90,255,.28) 50%,rgba(190,0,255,.28) 67%,rgba(255,0,100,.28) 100%)":"linear-gradient(135deg,rgba(255,255,255,.03) 0%,rgba(255,215,120,.09) 25%,rgba(120,215,255,.07) 50%,rgba(255,255,255,.03) 75%,rgba(190,255,190,.07) 100%)",backgroundSize:isLegendary?"300% 300%":"200% 200%",animation:isLegendary?"tcgFoilHeavy 2s linear infinite":"tcgFoilLight 4s linear infinite",pointerEvents:"none",mixBlendMode:"screen",borderRadius:Math.round(28*scale)}}/>}
 
-      {/* Overlay dynamique */}
       <svg ref={svgRef} width={W} height={H} viewBox={`0 0 ${VW} ${VH}`} xmlns="http://www.w3.org/2000/svg"
         style={{position:"absolute",inset:0,display:"block"}}>
-        <defs>
-          <clipPath id={clipId}>
-            <rect x={Z.photo.x} y={Z.photo.y} width={Z.photo.w} height={Z.photo.h} rx={Z.photo.rx}/>
-          </clipPath>
-        </defs>
+        <defs><clipPath id={clipId}><rect x={Z.photo.x} y={Z.photo.y} width={Z.photo.w} height={Z.photo.h} rx={Z.photo.rx}/></clipPath></defs>
 
-        {/* ── PHOTO (seulement en mode normal — full art utilise la couche img) ── */}
         {!isFullArt&&card.photoUrl&&<image href={card.photoUrl} x={Z.photo.x} y={Z.photo.y} width={Z.photo.w} height={Z.photo.h} preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipId})`}/>}
 
-        {/* ── ONGLET ÉVOLUTION ── */}
-        {card.isEvolution&&<>
-          <text x={308} y={91} textAnchor="middle" dominantBaseline="middle" {...WT} fontSize={15} fontWeight={800}>
-            {card.evolutionFrom?`Évolue de ${card.evolutionFrom}`:"ÉVOLUTION"}
-          </text>
-        </>}
+        {card.isEvolution&&<text x={308} y={91} textAnchor="middle" dominantBaseline="middle" {...WT} fontSize={15} fontWeight={800}>{card.evolutionFrom?`Évolue de ${card.evolutionFrom}`:"ÉVOLUTION"}</text>}
 
-        {/* ── FOND TEXTBOX (transparent en full art) ── */}
-        <rect x={tb.x} y={tb.y} width={tb.w} height={tb.h} rx={tb.rx} fill={tbCol} fillOpacity={isFullArt?0:tbOp}/>
+        {/* ── TEXTBOX ── */}
+        <g transform={elXf(tbCx,tbCy,tbRot)}>
+          <rect x={tb.x} y={tb.y} width={tb.w} height={tb.h} rx={tb.rx} fill={tbCol} fillOpacity={isFullArt?0:tbOp}/>
+          {lines.map((ln,i)=>(
+            <text key={i} x={ln.x} y={ln.y} textAnchor={ln.a||"start"} fontFamily="Arial,sans-serif" fontWeight={ln.b?900:600} fontStyle={ln.it?"italic":"normal"} fontSize={ln.s||14} fill={ln.ph?"rgba(255,255,255,0.25)":"#fff"} stroke={ln.ph?"none":"#000"} strokeWidth={ln.b?2.5:1.5} strokeLinejoin="round" paintOrder="stroke fill">{ln.t}</text>
+          ))}
+        </g>
 
-        {/* ── RARETÉ + NUMÉRO ── */}
-        {card.rarityId==="C"?(
-          <text x={308} y={820} textAnchor="middle" dominantBaseline="middle" fontFamily="Arial" fontSize={8} fill="rgba(255,255,255,0.28)" letterSpacing={1.5}>
-            {card.cardNumber}/{card.totalCards}
-          </text>
-        ):(
-          <>
-            <rect x={228} y={795} width={160} height={16} rx={8} fill={rar.color} fillOpacity={0.8}/>
-            <text x={308} y={803} textAnchor="middle" dominantBaseline="middle" fontFamily="Arial" fontWeight={900} fontSize={10} fill="#fff" letterSpacing={1.5}>
-              {rar.label.toUpperCase()}
-            </text>
-            <text x={308} y={826} textAnchor="middle" dominantBaseline="middle" fontFamily="monospace" fontSize={9} fill="rgba(255,255,255,0.5)">
-              {card.cardNumber}/{card.totalCards}
-            </text>
-          </>
-        )}
+        {/* ── RARETÉ ── */}
+        {card.rarityId==="C"?(<text x={308} y={820} textAnchor="middle" dominantBaseline="middle" fontFamily="Arial" fontSize={8} fill="rgba(255,255,255,0.28)" letterSpacing={1.5}>{card.cardNumber}/{card.totalCards}</text>):(<><rect x={228} y={795} width={160} height={16} rx={8} fill={rar.color} fillOpacity={0.8}/><text x={308} y={803} textAnchor="middle" dominantBaseline="middle" fontFamily="Arial" fontWeight={900} fontSize={10} fill="#fff" letterSpacing={1.5}>{rar.label.toUpperCase()}</text><text x={308} y={826} textAnchor="middle" dominantBaseline="middle" fontFamily="monospace" fontSize={9} fill="rgba(255,255,255,0.5)">{card.cardNumber}/{card.totalCards}</text></>)}
 
         {/* ── NOM ── */}
-        <text x={pos.nom.x} y={pos.nom.y} textAnchor={T.nom.anchor} dominantBaseline="middle" {...WT} fontSize={T.nom.size}>
-          {(card.name||"Nom de la carte").slice(0,20)}
-        </text>
+        <g transform={elXf(pos.nom.x,pos.nom.y,nomRot)}>
+          <text x={pos.nom.x} y={pos.nom.y} textAnchor={T.nom.anchor} dominantBaseline="middle" {...WT} fontSize={T.nom.size*nomSc}>{(card.name||"Nom de la carte").slice(0,20)}</text>
+        </g>
 
         {/* ── PV ── */}
-        <text x={T.pvVal.x} y={T.pvVal.y} textAnchor={T.pvVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.pvVal.size}>{card.hp}</text>
-        <text x={T.pvLbl.x} y={T.pvLbl.y} textAnchor="end" fontFamily="Arial" fontWeight={700} fontSize={T.pvLbl.size} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">PV</text>
+        <g transform={elXf(pos.pvVal.x,pvCy,pvRot)}>
+          <text x={pos.pvVal.x} y={pos.pvVal.y} textAnchor={T.pvVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.pvVal.size*pvSc}>{card.hp}</text>
+          <text x={pos.pvLbl.x} y={pos.pvLbl.y} textAnchor="end" fontFamily="Arial" fontWeight={700} fontSize={T.pvLbl.size*pvSc} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">PV</text>
+        </g>
 
         {/* ── FAMILLE ── */}
-        {card.family&&<text x={pos.fam.x} y={pos.fam.y} textAnchor="middle" dominantBaseline="middle"
-          transform={`rotate(90,${pos.fam.x},${pos.fam.y})`} {...WT} fontSize={T.fam.size}>
-          {card.family}
-        </text>}
-
-        {/* ── CONTENU TEXTBOX ── */}
-        {lines.map((ln,i)=>(
-          <text key={i} x={ln.x} y={ln.y} textAnchor={ln.a||"start"}
-            fontFamily="Arial,sans-serif" fontWeight={ln.b?900:600} fontStyle={ln.it?"italic":"normal"}
-            fontSize={ln.s||14} fill={ln.ph?"rgba(255,255,255,0.25)":"#fff"}
-            stroke={ln.ph?"none":"#000"} strokeWidth={ln.b?2.5:1.5} strokeLinejoin="round" paintOrder="stroke fill">
-            {ln.t}
-          </text>
-        ))}
+        {card.family&&<text x={pos.fam.x} y={pos.fam.y} textAnchor="middle" dominantBaseline="middle" transform={`rotate(${90+famRot},${pos.fam.x},${pos.fam.y})`} {...WT} fontSize={T.fam.size*famSc}>{card.family}</text>}
 
         {/* ── ATK ── */}
-        <text x={pos.atkLbl.x} y={pos.atkLbl.y} textAnchor={T.atkLbl.anchor} fontFamily="Arial" fontWeight={700} fontSize={T.atkLbl.size} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">ATK</text>
-        <text x={pos.atkVal.x} y={pos.atkVal.y} textAnchor={T.atkVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.atkVal.size}>{card.attack}</text>
+        <g transform={elXf(pos.atkLbl.x,atkCy,atkRot)}>
+          <text x={pos.atkLbl.x} y={pos.atkLbl.y} textAnchor={T.atkLbl.anchor} fontFamily="Arial" fontWeight={700} fontSize={T.atkLbl.size*atkSc} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">ATK</text>
+          <text x={pos.atkVal.x} y={pos.atkVal.y} textAnchor={T.atkVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.atkVal.size*atkSc}>{card.attack}</text>
+        </g>
 
         {/* ── DEF ── */}
-        <text x={pos.defLbl.x} y={pos.defLbl.y} textAnchor={T.defLbl.anchor} fontFamily="Arial" fontWeight={700} fontSize={T.defLbl.size} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">DEF</text>
-        <text x={pos.defVal.x} y={pos.defVal.y} textAnchor={T.defVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.defVal.size}>{card.defense}</text>
+        <g transform={elXf(pos.defLbl.x,defCy,defRot)}>
+          <text x={pos.defLbl.x} y={pos.defLbl.y} textAnchor={T.defLbl.anchor} fontFamily="Arial" fontWeight={700} fontSize={T.defLbl.size*defSc} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">DEF</text>
+          <text x={pos.defVal.x} y={pos.defVal.y} textAnchor={T.defVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.defVal.size*defSc}>{card.defense}</text>
+        </g>
 
-        {/* ── HANDLES DRAG/RESIZE (mode édition seulement) ── */}
+        {/* ── HANDLES ÉDITION ── */}
         {editable&&<>
-          <rect x={tb.x} y={tb.y} width={tb.w} height={tb.h} rx={tb.rx}
-            fill="rgba(100,160,255,0.06)" stroke="rgba(100,160,255,0.85)" strokeWidth={2} strokeDasharray="10 5"
-            style={{cursor:"move"}}
-            onMouseDown={e=>startDrag("move",tb.x,tb.y,e)} onTouchStart={e=>startDrag("move",tb.x,tb.y,e)}/>
-          {[["nw",tb.x,tb.y],["ne",tb.x+tb.w,tb.y],["sw",tb.x,tb.y+tb.h],["se",tb.x+tb.w,tb.y+tb.h]].map(([t,hx,hy])=>(
-            <rect key={t} x={hx-HS} y={hy-HS} width={HS*2} height={HS*2} rx={3}
-              fill="rgba(255,255,255,0.92)" stroke="#4a90d9" strokeWidth={1.5}
-              style={{cursor:t==="nw"||t==="se"?"nwse-resize":"nesw-resize"}}
-              onMouseDown={e=>startDrag(t,tb.x,tb.y,e)} onTouchStart={e=>startDrag(t,tb.x,tb.y,e)}/>
-          ))}
-          <rect x={pos.nom.x-8} y={pos.nom.y-26} width={230} height={36} rx={4}
-            fill="rgba(255,200,80,0.06)" stroke="rgba(255,200,80,0.75)" strokeWidth={1.5} strokeDasharray="8 4"
-            style={{cursor:"move"}}
-            onMouseDown={e=>startDrag("nom",pos.nom.x,pos.nom.y,e)} onTouchStart={e=>startDrag("nom",pos.nom.x,pos.nom.y,e)}/>
-          <rect x={pos.atkLbl.x-28} y={pos.atkLbl.y-6} width={56} height={40} rx={4}
-            fill="rgba(255,100,100,0.06)" stroke="rgba(255,100,100,0.75)" strokeWidth={1.5} strokeDasharray="8 4"
-            style={{cursor:"move"}}
-            onMouseDown={e=>startDrag("atk",pos.atkLbl.x,pos.atkLbl.y,e)} onTouchStart={e=>startDrag("atk",pos.atkLbl.x,pos.atkLbl.y,e)}/>
-          <rect x={pos.defLbl.x-28} y={pos.defLbl.y-6} width={56} height={40} rx={4}
-            fill="rgba(100,220,100,0.06)" stroke="rgba(100,220,100,0.75)" strokeWidth={1.5} strokeDasharray="8 4"
-            style={{cursor:"move"}}
-            onMouseDown={e=>startDrag("def",pos.defLbl.x,pos.defLbl.y,e)} onTouchStart={e=>startDrag("def",pos.defLbl.x,pos.defLbl.y,e)}/>
-          {card.family&&<rect x={pos.fam.x-16} y={pos.fam.y-70} width={32} height={140} rx={4}
-            fill="rgba(180,100,255,0.06)" stroke="rgba(180,100,255,0.75)" strokeWidth={1.5} strokeDasharray="8 4"
-            style={{cursor:"move"}}
-            onMouseDown={e=>startDrag("fam",pos.fam.x,pos.fam.y,e)} onTouchStart={e=>startDrag("fam",pos.fam.x,pos.fam.y,e)}/>}
+          {/* Textbox: move + resize (dans le repère tourné) */}
+          <g transform={elXf(tbCx,tbCy,tbRot)}>
+            <rect x={tb.x} y={tb.y} width={tb.w} height={tb.h} rx={tb.rx} fill="rgba(100,160,255,0.06)" stroke="rgba(100,160,255,0.85)" strokeWidth={2} strokeDasharray="10 5" style={{cursor:"move"}} onMouseDown={e=>startDrag("move",{ox:tb.x,oy:tb.y,ow:tb.w,oh:tb.h},e)} onTouchStart={e=>startDrag("move",{ox:tb.x,oy:tb.y,ow:tb.w,oh:tb.h},e)}/>
+            {[["nw",tb.x,tb.y],["ne",tb.x+tb.w,tb.y],["sw",tb.x,tb.y+tb.h],["se",tb.x+tb.w,tb.y+tb.h]].map(([t,hx,hy])=>(
+              <rect key={t} x={hx-HS} y={hy-HS} width={HS*2} height={HS*2} rx={3} fill="rgba(255,255,255,0.92)" stroke="#4a90d9" strokeWidth={1.5} style={{cursor:t==="nw"||t==="se"?"nwse-resize":"nesw-resize"}} onMouseDown={e=>startDrag(t,{ox:tb.x,oy:tb.y,ow:tb.w,oh:tb.h},e)} onTouchStart={e=>startDrag(t,{ox:tb.x,oy:tb.y,ow:tb.w,oh:tb.h},e)}/>
+            ))}
+          </g>
+          {/* Textbox: rotation handle */}
+          {(()=>{const{x:rhx,y:rhy}=rHnd(tbCx,tbCy,tbRot);return(<><line x1={tbCx} y1={tbCy} x2={rhx} y2={rhy} stroke="rgba(255,255,255,0.35)" strokeWidth={0.7}/><circle cx={rhx} cy={rhy} r={5} fill="rgba(255,255,255,0.9)" stroke="#4a90d9" strokeWidth={1.5} style={{cursor:'crosshair'}} onMouseDown={e=>startDrag("tb-rot",{cx:tbCx,cy:tbCy,origRot:tbRot},e)} onTouchStart={e=>startDrag("tb-rot",{cx:tbCx,cy:tbCy,origRot:tbRot},e)}/></>);})()}
+          {TH("nom",pos.nom.x,pos.nom.y,nomRot,nomSc,240,36,"255,200,80")}
+          {TH("pv",pos.pvVal.x,pvCy,pvRot,pvSc,80,46,"200,200,255")}
+          {TH("atk",pos.atkLbl.x,atkCy,atkRot,atkSc,56,46,"255,100,100")}
+          {TH("def",pos.defLbl.x,defCy,defRot,defSc,56,46,"100,220,100")}
+          {card.family&&TH("fam",pos.fam.x,pos.fam.y,90+famRot,famSc,32,140,"180,100,255")}
+          {/* Guides alignement */}
+          {guides.xs.map((x,i)=><line key={`gx${i}`} x1={x} y1={0} x2={x} y2={VH} stroke="rgba(0,210,255,0.75)" strokeWidth={0.6} strokeDasharray="4 3"/>)}
+          {guides.ys.map((y,i)=><line key={`gy${i}`} x1={0} y1={y} x2={VW} y2={y} stroke="rgba(0,210,255,0.75)" strokeWidth={0.6} strokeDasharray="4 3"/>)}
         </>}
       </svg>
     </div>
@@ -689,15 +712,23 @@ async function exportCard(card,svgUrl,onDone) {
   const stCol=card.strokeColor||"#fff",stW=card.strokeWidth??2;
   const tbCol=card.textBoxColor||"#000",tbOp=card.textBoxOpacity??0.85;
   const rar=RARITIES.find(r=>r.id===card.rarityId)||RARITIES[0];
-  const tb=getTb(card);const pos=getPos(card);
+  const tb=getTb(card),pos=getPos(card);
+  const tbCx=tb.x+tb.w/2,tbCy=tb.y+tb.h/2;
+  const atkCy=(pos.atkLbl.y+pos.atkVal.y)/2,defCy=(pos.defLbl.y+pos.defVal.y)/2,pvCy=(pos.pvVal.y+pos.pvLbl.y)/2;
+  const tbRot=card.tbRot||0,nomRot=card.nomRot||0,nomSc=card.nomScale||1;
+  const pvRot=card.pvRot||0,pvSc=card.pvScale||1;
+  const atkRot=card.atkRot||0,atkSc=card.atkScale||1;
+  const defRot=card.defRot||0,defSc=card.defScale||1;
+  const famRot=card.famRot||0,famSc=card.famScale||1;
+  const xf=(cx,cy,r)=>r?` transform="rotate(${r},${cx},${cy})"`:'';
   const lines=[];let ty=tb.y+36;
   if(card.ability){lines.push({b:true,t:`[${card.ability}]`,x:tb.x+16,y:ty,s:16});ty+=24;if(card.abilityDesc){lines.push({t:card.abilityDesc,x:tb.x+16,y:ty,s:13});ty+=20;}}
   [[card.move1Name,card.move1Dmg,card.move1Desc],[card.move2Name,card.move2Dmg,card.move2Desc]].forEach(([name,dmg,desc])=>{if(!name)return;lines.push({b:true,t:name,x:tb.x+16,y:ty,s:16});if(dmg>0)lines.push({b:true,t:`+${dmg}`,x:tb.x+tb.w-16,y:ty,s:16,a:"end"});ty+=24;if(desc){lines.push({t:desc,x:tb.x+16,y:ty,s:13});ty+=19;}});
   if(card.flavorText)lines.push({it:true,t:`"${card.flavorText}"`,x:tb.x+tb.w/2,y:tb.y+tb.h-18,s:12,a:"middle"});
-  const wt=(x,y,t,sz,an="start")=>`<text x="${x}" y="${y}" text-anchor="${an}" dominant-baseline="middle" font-family="Arial Black,Arial" font-weight="900" font-size="${sz}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${t}</text>`;
-  const lx=lines.map(ln=>`<text x="${ln.x}" y="${ln.y}" text-anchor="${ln.a||"start"}" font-family="Arial,sans-serif" font-weight="${ln.b?900:600}" font-style="${ln.it?"italic":"normal"}" font-size="${ln.s||14}" fill="${ln.ph?"rgba(255,255,255,0.25)":"#fff"}" stroke="${ln.ph?"none":"#000"}" stroke-width="${ln.b?2.5:1.5}" stroke-linejoin="round" paint-order="stroke fill">${ln.t}</text>`).join("");
+  const wt=(x,y,t,sz,an="start",rot=0,rcx=x,rcy=y)=>`<text x="${x}" y="${y}" text-anchor="${an}" dominant-baseline="middle" font-family="Arial Black,Arial" font-weight="900" font-size="${sz}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill"${xf(rcx,rcy,rot)}>${t}</text>`;
+  const lx=`<g${xf(tbCx,tbCy,tbRot)}>${lines.map(ln=>`<text x="${ln.x}" y="${ln.y}" text-anchor="${ln.a||"start"}" font-family="Arial,sans-serif" font-weight="${ln.b?900:600}" font-style="${ln.it?"italic":"normal"}" font-size="${ln.s||14}" fill="${ln.ph?"rgba(255,255,255,0.25)":"#fff"}" stroke="${ln.ph?"none":"#000"}" stroke-width="${ln.b?2.5:1.5}" stroke-linejoin="round" paint-order="stroke fill">${ln.t}</text>`).join("")}</g>`;
   const evo=card.isEvolution?`<rect x="180" y="70" width="256" height="38" rx="19" fill="#333"/>${wt(308,91,card.evolutionFrom?`Évolue de ${card.evolutionFrom}`:"ÉVOLUTION",15,"middle")}`:"";
-  const svg=`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${VW}" height="${VH}" viewBox="0 0 ${VW} ${VH}"><defs>${card.photoUrl?'<clipPath id="ec"><rect x="'+Z.photo.x+'" y="'+Z.photo.y+'" width="'+Z.photo.w+'" height="'+Z.photo.h+'" rx="'+Z.photo.rx+'"/></clipPath>':""}</defs>${card.photoUrl?'<image href="'+card.photoUrl+'" x="'+Z.photo.x+'" y="'+Z.photo.y+'" width="'+Z.photo.w+'" height="'+Z.photo.h+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#ec)"/>':""} ${evo}<rect x="${tb.x}" y="${tb.y}" width="${tb.w}" height="${tb.h}" rx="${tb.rx}" fill="${tbCol}" fill-opacity="${tbOp}"/>${card.rarityId==="C"?`<text x="308" y="820" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="8" fill="rgba(255,255,255,0.28)" letter-spacing="1.5">${card.cardNumber}/${card.totalCards}</text>`:`<rect x="228" y="795" width="160" height="16" rx="8" fill="${rar.color}" fill-opacity="0.8"/><text x="308" y="803" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-weight="900" font-size="10" fill="#fff" letter-spacing="1.5">${rar.label.toUpperCase()}</text><text x="308" y="826" text-anchor="middle" dominant-baseline="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,0.5)">${card.cardNumber}/${card.totalCards}</text>`}${wt(pos.nom.x,pos.nom.y,(card.name||"Nom de la carte").slice(0,20),T.nom.size,"start")}<text x="${T.pvVal.x}" y="${T.pvVal.y}" text-anchor="end" dominant-baseline="middle" font-family="Arial Black,Arial" font-weight="900" font-size="${T.pvVal.size}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${card.hp}</text><text x="${T.pvLbl.x}" y="${T.pvLbl.y}" text-anchor="end" font-family="Arial" font-weight="700" font-size="${T.pvLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">PV</text>${card.family?`<text x="${pos.fam.x}" y="${pos.fam.y}" text-anchor="middle" dominant-baseline="middle" transform="rotate(90,${pos.fam.x},${pos.fam.y})" font-family="Arial Black,Arial" font-weight="900" font-size="${T.fam.size}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${card.family}</text>`:""} ${lx}<text x="${pos.atkLbl.x}" y="${pos.atkLbl.y}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${T.atkLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">ATK</text>${wt(pos.atkVal.x,pos.atkVal.y,card.attack,T.atkVal.size,"middle")}<text x="${pos.defLbl.x}" y="${pos.defLbl.y}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${T.defLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">DEF</text>${wt(pos.defVal.x,pos.defVal.y,card.defense,T.defVal.size,"middle")}</svg>`;
+  const svg=`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${VW}" height="${VH}" viewBox="0 0 ${VW} ${VH}"><defs>${card.photoUrl?'<clipPath id="ec"><rect x="'+Z.photo.x+'" y="'+Z.photo.y+'" width="'+Z.photo.w+'" height="'+Z.photo.h+'" rx="'+Z.photo.rx+'"/></clipPath>':""}</defs>${card.photoUrl?'<image href="'+card.photoUrl+'" x="'+Z.photo.x+'" y="'+Z.photo.y+'" width="'+Z.photo.w+'" height="'+Z.photo.h+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#ec)"/>':""} ${evo}<g${xf(tbCx,tbCy,tbRot)}><rect x="${tb.x}" y="${tb.y}" width="${tb.w}" height="${tb.h}" rx="${tb.rx}" fill="${tbCol}" fill-opacity="${tbOp}"/></g>${card.rarityId==="C"?`<text x="308" y="820" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="8" fill="rgba(255,255,255,0.28)" letter-spacing="1.5">${card.cardNumber}/${card.totalCards}</text>`:`<rect x="228" y="795" width="160" height="16" rx="8" fill="${rar.color}" fill-opacity="0.8"/><text x="308" y="803" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-weight="900" font-size="10" fill="#fff" letter-spacing="1.5">${rar.label.toUpperCase()}</text><text x="308" y="826" text-anchor="middle" dominant-baseline="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,0.5)">${card.cardNumber}/${card.totalCards}</text>`}${wt(pos.nom.x,pos.nom.y,(card.name||"Nom de la carte").slice(0,20),T.nom.size*nomSc,"start",nomRot)}<g${xf(pos.pvVal.x,pvCy,pvRot)}><text x="${pos.pvVal.x}" y="${pos.pvVal.y}" text-anchor="end" dominant-baseline="middle" font-family="Arial Black,Arial" font-weight="900" font-size="${T.pvVal.size*pvSc}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${card.hp}</text><text x="${pos.pvLbl.x}" y="${pos.pvLbl.y}" text-anchor="end" font-family="Arial" font-weight="700" font-size="${T.pvLbl.size*pvSc}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">PV</text></g>${card.family?`<text x="${pos.fam.x}" y="${pos.fam.y}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${90+famRot},${pos.fam.x},${pos.fam.y})" font-family="Arial Black,Arial" font-weight="900" font-size="${T.fam.size*famSc}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${card.family}</text>`:""} ${lx}<g${xf(pos.atkLbl.x,atkCy,atkRot)}><text x="${pos.atkLbl.x}" y="${pos.atkLbl.y}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${T.atkLbl.size*atkSc}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">ATK</text>${wt(pos.atkVal.x,pos.atkVal.y,card.attack,T.atkVal.size*atkSc,"middle")}</g><g${xf(pos.defLbl.x,defCy,defRot)}><text x="${pos.defLbl.x}" y="${pos.defLbl.y}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${T.defLbl.size*defSc}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">DEF</text>${wt(pos.defVal.x,pos.defVal.y,card.defense,T.defVal.size*defSc,"middle")}</g></svg>`;
   const overlayBlob=new Blob([svg],{type:"image/svg+xml"}),overlayUrl=URL.createObjectURL(overlayBlob);
 
   // Générer le SVG de fond normalisé (+ couleur éventuelle des contours)
@@ -901,8 +932,8 @@ export default function App(){
       <div style={{fontSize:9,color:"#bbb",letterSpacing:3,textTransform:"uppercase",marginBottom:4,fontFamily:"sans-serif"}}>Aperçu temps réel</div>
       <div style={{fontSize:10,color:"#aaa",marginBottom:16,fontFamily:"sans-serif"}}>Glisse · Étire aux coins</div>
       {(()=>{const mw=Math.min(typeof window!=="undefined"?window.innerWidth-32:360,420);return<TCGCard card={form} scale={mw/VW} svgUrl={SVG_URL} editable={true} onUpdateTextbox={v=>setForm(p=>({...p,...v}))}/>;})()}
-      {(form.tbX!=null||form.tbY!=null||form.tbW!=null||form.tbH!=null||form.nomX!=null||form.atkX!=null||form.defX!=null||form.famX!=null)&&
-        <button onClick={()=>setForm(p=>({...p,tbX:null,tbY:null,tbW:null,tbH:null,nomX:null,nomY:null,atkX:null,atkY:null,defX:null,defY:null,famX:null,famY:null}))}
+      {(form.tbX!=null||form.tbY!=null||form.tbW!=null||form.tbH!=null||form.tbRot||form.nomX!=null||form.nomRot||form.nomScale!==1||form.pvX!=null||form.pvRot||form.pvScale!==1||form.atkX!=null||form.atkRot||form.atkScale!==1||form.defX!=null||form.defRot||form.defScale!==1||form.famX!=null||form.famRot||form.famScale!==1)&&
+        <button onClick={()=>setForm(p=>({...p,tbX:null,tbY:null,tbW:null,tbH:null,tbRot:0,nomX:null,nomY:null,nomScale:1,nomRot:0,pvX:null,pvY:null,pvScale:1,pvRot:0,atkX:null,atkY:null,atkScale:1,atkRot:0,defX:null,defY:null,defScale:1,defRot:0,famX:null,famY:null,famScale:1,famRot:0}))}
           style={{marginTop:16,background:"#fff",border:"1.5px solid #ddd",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontSize:12,fontWeight:700,color:"#888",fontFamily:"sans-serif"}}>
           ↺ Réinitialiser position
         </button>
