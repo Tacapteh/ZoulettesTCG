@@ -389,6 +389,14 @@ const T = {
 };
 
 const getTb=card=>({x:card.tbX??Z.textbox.x,y:card.tbY??Z.textbox.y,w:card.tbW??Z.textbox.w,h:card.tbH??Z.textbox.h,rx:Z.textbox.rx});
+const getPos=card=>({
+  nom:    {x:card.nomX??T.nom.x,   y:card.nomY??T.nom.y},
+  atkLbl: {x:card.atkX??T.atkLbl.x,y:card.atkY??T.atkLbl.y},
+  atkVal: {x:card.atkX??T.atkVal.x,y:(card.atkY??T.atkLbl.y)+(T.atkVal.y-T.atkLbl.y)},
+  defLbl: {x:card.defX??T.defLbl.x,y:card.defY??T.defLbl.y},
+  defVal: {x:card.defX??T.defVal.x,y:(card.defY??T.defLbl.y)+(T.defVal.y-T.defLbl.y)},
+  fam:    {x:card.famX??T.fam.x,   y:card.famY??T.fam.y},
+});
 
 const RARITIES = [
   { id: "C", label: "Commune",    color: "#888888" },
@@ -411,6 +419,7 @@ const BLANK = {
   move2Name:"",move2Dmg:60,move2Desc:"",
   flavorText:"",cardNumber:"001",totalCards:"060",
   tbX:null,tbY:null,tbW:null,tbH:null,
+  nomX:null,nomY:null,atkX:null,atkY:null,defX:null,defY:null,famX:null,famY:null,
 };
 const INIT_PROFILES = [{id:"lechich",name:"Le Chich",bio:"Dev boss.",photos:[]}];
 const uid = () => Math.random().toString(36).slice(2,9);
@@ -497,8 +506,8 @@ function TCGCard({card,scale=1,svgUrl="./Card_TCG.svg",editable=false,onUpdateTe
   const cbRef=useRef(onUpdateTextbox);
   useEffect(()=>{cbRef.current=onUpdateTextbox;},[onUpdateTextbox]);
   const tb=getTb(card);
+  const pos=getPos(card);
 
-  // Drag/resize via window listeners pour ne pas perdre le curseur hors SVG
   useEffect(()=>{
     if(!editable)return;
     const pt=e=>{const r=svgRef.current?.getBoundingClientRect();if(!r)return{x:0,y:0};const p=e.touches?e.touches[0]:e;return{x:(p.clientX-r.left)*VW/r.width,y:(p.clientY-r.top)*VH/r.height};};
@@ -506,13 +515,17 @@ function TCGCard({card,scale=1,svgUrl="./Card_TCG.svg",editable=false,onUpdateTe
       const d=dragRef.current;if(!d)return;
       if(e.cancelable)e.preventDefault();
       const{x,y}=pt(e);const dx=x-d.sx,dy=y-d.sy;
-      let nx=d.ox,ny=d.oy,nw=d.ow,nh=d.oh;
-      if(d.type==="move"){nx=d.ox+dx;ny=d.oy+dy;}
-      else if(d.type==="se"){nw=Math.max(80,d.ow+dx);nh=Math.max(50,d.oh+dy);}
-      else if(d.type==="sw"){nx=d.ox+dx;nw=Math.max(80,d.ow-dx);nh=Math.max(50,d.oh+dy);}
-      else if(d.type==="ne"){ny=d.oy+dy;nw=Math.max(80,d.ow+dx);nh=Math.max(50,d.oh-dy);}
-      else if(d.type==="nw"){nx=d.ox+dx;ny=d.oy+dy;nw=Math.max(80,d.ow-dx);nh=Math.max(50,d.oh-dy);}
-      cbRef.current?.({tbX:Math.round(nx),tbY:Math.round(ny),tbW:Math.round(nw),tbH:Math.round(nh)});
+      if(["move","se","sw","ne","nw"].includes(d.type)){
+        let nx=d.ox,ny=d.oy,nw=d.ow,nh=d.oh;
+        if(d.type==="move"){nx=d.ox+dx;ny=d.oy+dy;}
+        else if(d.type==="se"){nw=Math.max(80,d.ow+dx);nh=Math.max(50,d.oh+dy);}
+        else if(d.type==="sw"){nx=d.ox+dx;nw=Math.max(80,d.ow-dx);nh=Math.max(50,d.oh+dy);}
+        else if(d.type==="ne"){ny=d.oy+dy;nw=Math.max(80,d.ow+dx);nh=Math.max(50,d.oh-dy);}
+        else if(d.type==="nw"){nx=d.ox+dx;ny=d.oy+dy;nw=Math.max(80,d.ow-dx);nh=Math.max(50,d.oh-dy);}
+        cbRef.current?.({tbX:Math.round(nx),tbY:Math.round(ny),tbW:Math.round(nw),tbH:Math.round(nh)});
+      } else {
+        cbRef.current?.({[`${d.type}X`]:Math.round(d.ox+dx),[`${d.type}Y`]:Math.round(d.oy+dy)});
+      }
     };
     const up=()=>{dragRef.current=null;};
     window.addEventListener("mousemove",mv);window.addEventListener("mouseup",up);
@@ -520,11 +533,11 @@ function TCGCard({card,scale=1,svgUrl="./Card_TCG.svg",editable=false,onUpdateTe
     return()=>{window.removeEventListener("mousemove",mv);window.removeEventListener("mouseup",up);window.removeEventListener("touchmove",mv);window.removeEventListener("touchend",up);};
   },[editable]);
 
-  const startDrag=(type,e)=>{
+  const startDrag=(type,ox,oy,e)=>{
     e.preventDefault();e.stopPropagation();
     const r=svgRef.current?.getBoundingClientRect();if(!r)return;
     const p=e.touches?e.touches[0]:e;
-    dragRef.current={type,sx:(p.clientX-r.left)*VW/r.width,sy:(p.clientY-r.top)*VH/r.height,ox:tb.x,oy:tb.y,ow:tb.w,oh:tb.h};
+    dragRef.current={type,sx:(p.clientX-r.left)*VW/r.width,sy:(p.clientY-r.top)*VH/r.height,ox,oy,ow:tb.w,oh:tb.h};
   };
 
   // Helper: texte avec stroke TCG
@@ -603,7 +616,7 @@ function TCGCard({card,scale=1,svgUrl="./Card_TCG.svg",editable=false,onUpdateTe
         )}
 
         {/* ── NOM ── */}
-        <text x={T.nom.x} y={T.nom.y} textAnchor={T.nom.anchor} dominantBaseline="middle" {...WT} fontSize={T.nom.size}>
+        <text x={pos.nom.x} y={pos.nom.y} textAnchor={T.nom.anchor} dominantBaseline="middle" {...WT} fontSize={T.nom.size}>
           {(card.name||"Nom de la carte").slice(0,20)}
         </text>
 
@@ -612,8 +625,8 @@ function TCGCard({card,scale=1,svgUrl="./Card_TCG.svg",editable=false,onUpdateTe
         <text x={T.pvLbl.x} y={T.pvLbl.y} textAnchor="end" fontFamily="Arial" fontWeight={700} fontSize={T.pvLbl.size} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">PV</text>
 
         {/* ── FAMILLE ── */}
-        {card.family&&<text x={T.fam.x} y={T.fam.y} textAnchor="middle" dominantBaseline="middle"
-          transform={`rotate(90,${T.fam.x},${T.fam.y})`} {...WT} fontSize={T.fam.size}>
+        {card.family&&<text x={pos.fam.x} y={pos.fam.y} textAnchor="middle" dominantBaseline="middle"
+          transform={`rotate(90,${pos.fam.x},${pos.fam.y})`} {...WT} fontSize={T.fam.size}>
           {card.family}
         </text>}
 
@@ -628,25 +641,41 @@ function TCGCard({card,scale=1,svgUrl="./Card_TCG.svg",editable=false,onUpdateTe
         ))}
 
         {/* ── ATK ── */}
-        <text x={T.atkLbl.x} y={T.atkLbl.y} textAnchor={T.atkLbl.anchor} fontFamily="Arial" fontWeight={700} fontSize={T.atkLbl.size} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">ATK</text>
-        <text x={T.atkVal.x} y={T.atkVal.y} textAnchor={T.atkVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.atkVal.size}>{card.attack}</text>
+        <text x={pos.atkLbl.x} y={pos.atkLbl.y} textAnchor={T.atkLbl.anchor} fontFamily="Arial" fontWeight={700} fontSize={T.atkLbl.size} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">ATK</text>
+        <text x={pos.atkVal.x} y={pos.atkVal.y} textAnchor={T.atkVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.atkVal.size}>{card.attack}</text>
 
         {/* ── DEF ── */}
-        <text x={T.defLbl.x} y={T.defLbl.y} textAnchor={T.defLbl.anchor} fontFamily="Arial" fontWeight={700} fontSize={T.defLbl.size} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">DEF</text>
-        <text x={T.defVal.x} y={T.defVal.y} textAnchor={T.defVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.defVal.size}>{card.defense}</text>
+        <text x={pos.defLbl.x} y={pos.defLbl.y} textAnchor={T.defLbl.anchor} fontFamily="Arial" fontWeight={700} fontSize={T.defLbl.size} fill="rgba(255,255,255,0.85)" stroke={stCol} strokeWidth={stW*0.5} paintOrder="stroke fill">DEF</text>
+        <text x={pos.defVal.x} y={pos.defVal.y} textAnchor={T.defVal.anchor} dominantBaseline="middle" {...WT} fontSize={T.defVal.size}>{card.defense}</text>
 
         {/* ── HANDLES DRAG/RESIZE (mode édition seulement) ── */}
         {editable&&<>
           <rect x={tb.x} y={tb.y} width={tb.w} height={tb.h} rx={tb.rx}
             fill="rgba(100,160,255,0.06)" stroke="rgba(100,160,255,0.85)" strokeWidth={2} strokeDasharray="10 5"
             style={{cursor:"move"}}
-            onMouseDown={e=>startDrag("move",e)} onTouchStart={e=>startDrag("move",e)}/>
+            onMouseDown={e=>startDrag("move",tb.x,tb.y,e)} onTouchStart={e=>startDrag("move",tb.x,tb.y,e)}/>
           {[["nw",tb.x,tb.y],["ne",tb.x+tb.w,tb.y],["sw",tb.x,tb.y+tb.h],["se",tb.x+tb.w,tb.y+tb.h]].map(([t,hx,hy])=>(
             <rect key={t} x={hx-HS} y={hy-HS} width={HS*2} height={HS*2} rx={3}
               fill="rgba(255,255,255,0.92)" stroke="#4a90d9" strokeWidth={1.5}
               style={{cursor:t==="nw"||t==="se"?"nwse-resize":"nesw-resize"}}
-              onMouseDown={e=>startDrag(t,e)} onTouchStart={e=>startDrag(t,e)}/>
+              onMouseDown={e=>startDrag(t,tb.x,tb.y,e)} onTouchStart={e=>startDrag(t,tb.x,tb.y,e)}/>
           ))}
+          <rect x={pos.nom.x-8} y={pos.nom.y-26} width={230} height={36} rx={4}
+            fill="rgba(255,200,80,0.06)" stroke="rgba(255,200,80,0.75)" strokeWidth={1.5} strokeDasharray="8 4"
+            style={{cursor:"move"}}
+            onMouseDown={e=>startDrag("nom",pos.nom.x,pos.nom.y,e)} onTouchStart={e=>startDrag("nom",pos.nom.x,pos.nom.y,e)}/>
+          <rect x={pos.atkLbl.x-28} y={pos.atkLbl.y-6} width={56} height={40} rx={4}
+            fill="rgba(255,100,100,0.06)" stroke="rgba(255,100,100,0.75)" strokeWidth={1.5} strokeDasharray="8 4"
+            style={{cursor:"move"}}
+            onMouseDown={e=>startDrag("atk",pos.atkLbl.x,pos.atkLbl.y,e)} onTouchStart={e=>startDrag("atk",pos.atkLbl.x,pos.atkLbl.y,e)}/>
+          <rect x={pos.defLbl.x-28} y={pos.defLbl.y-6} width={56} height={40} rx={4}
+            fill="rgba(100,220,100,0.06)" stroke="rgba(100,220,100,0.75)" strokeWidth={1.5} strokeDasharray="8 4"
+            style={{cursor:"move"}}
+            onMouseDown={e=>startDrag("def",pos.defLbl.x,pos.defLbl.y,e)} onTouchStart={e=>startDrag("def",pos.defLbl.x,pos.defLbl.y,e)}/>
+          {card.family&&<rect x={pos.fam.x-16} y={pos.fam.y-70} width={32} height={140} rx={4}
+            fill="rgba(180,100,255,0.06)" stroke="rgba(180,100,255,0.75)" strokeWidth={1.5} strokeDasharray="8 4"
+            style={{cursor:"move"}}
+            onMouseDown={e=>startDrag("fam",pos.fam.x,pos.fam.y,e)} onTouchStart={e=>startDrag("fam",pos.fam.x,pos.fam.y,e)}/>}
         </>}
       </svg>
     </div>
@@ -660,7 +689,7 @@ async function exportCard(card,svgUrl,onDone) {
   const stCol=card.strokeColor||"#fff",stW=card.strokeWidth??2;
   const tbCol=card.textBoxColor||"#000",tbOp=card.textBoxOpacity??0.85;
   const rar=RARITIES.find(r=>r.id===card.rarityId)||RARITIES[0];
-  const tb=getTb(card);
+  const tb=getTb(card);const pos=getPos(card);
   const lines=[];let ty=tb.y+36;
   if(card.ability){lines.push({b:true,t:`[${card.ability}]`,x:tb.x+16,y:ty,s:16});ty+=24;if(card.abilityDesc){lines.push({t:card.abilityDesc,x:tb.x+16,y:ty,s:13});ty+=20;}}
   [[card.move1Name,card.move1Dmg,card.move1Desc],[card.move2Name,card.move2Dmg,card.move2Desc]].forEach(([name,dmg,desc])=>{if(!name)return;lines.push({b:true,t:name,x:tb.x+16,y:ty,s:16});if(dmg>0)lines.push({b:true,t:`+${dmg}`,x:tb.x+tb.w-16,y:ty,s:16,a:"end"});ty+=24;if(desc){lines.push({t:desc,x:tb.x+16,y:ty,s:13});ty+=19;}});
@@ -668,7 +697,7 @@ async function exportCard(card,svgUrl,onDone) {
   const wt=(x,y,t,sz,an="start")=>`<text x="${x}" y="${y}" text-anchor="${an}" dominant-baseline="middle" font-family="Arial Black,Arial" font-weight="900" font-size="${sz}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${t}</text>`;
   const lx=lines.map(ln=>`<text x="${ln.x}" y="${ln.y}" text-anchor="${ln.a||"start"}" font-family="Arial,sans-serif" font-weight="${ln.b?900:600}" font-style="${ln.it?"italic":"normal"}" font-size="${ln.s||14}" fill="${ln.ph?"rgba(255,255,255,0.25)":"#fff"}" stroke="${ln.ph?"none":"#000"}" stroke-width="${ln.b?2.5:1.5}" stroke-linejoin="round" paint-order="stroke fill">${ln.t}</text>`).join("");
   const evo=card.isEvolution?`<rect x="180" y="70" width="256" height="38" rx="19" fill="#333"/>${wt(308,91,card.evolutionFrom?`Évolue de ${card.evolutionFrom}`:"ÉVOLUTION",15,"middle")}`:"";
-  const svg=`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${VW}" height="${VH}" viewBox="0 0 ${VW} ${VH}"><defs>${card.photoUrl?'<clipPath id="ec"><rect x="'+Z.photo.x+'" y="'+Z.photo.y+'" width="'+Z.photo.w+'" height="'+Z.photo.h+'" rx="'+Z.photo.rx+'"/></clipPath>':""}</defs>${card.photoUrl?'<image href="'+card.photoUrl+'" x="'+Z.photo.x+'" y="'+Z.photo.y+'" width="'+Z.photo.w+'" height="'+Z.photo.h+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#ec)"/>':""} ${evo}<rect x="${tb.x}" y="${tb.y}" width="${tb.w}" height="${tb.h}" rx="${tb.rx}" fill="${tbCol}" fill-opacity="${tbOp}"/>${card.rarityId==="C"?`<text x="308" y="820" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="8" fill="rgba(255,255,255,0.28)" letter-spacing="1.5">${card.cardNumber}/${card.totalCards}</text>`:`<rect x="228" y="795" width="160" height="16" rx="8" fill="${rar.color}" fill-opacity="0.8"/><text x="308" y="803" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-weight="900" font-size="10" fill="#fff" letter-spacing="1.5">${rar.label.toUpperCase()}</text><text x="308" y="826" text-anchor="middle" dominant-baseline="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,0.5)">${card.cardNumber}/${card.totalCards}</text>`}${wt(T.nom.x,T.nom.y,(card.name||"Nom de la carte").slice(0,20),T.nom.size,"start")}<text x="${T.pvVal.x}" y="${T.pvVal.y}" text-anchor="end" dominant-baseline="middle" font-family="Arial Black,Arial" font-weight="900" font-size="${T.pvVal.size}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${card.hp}</text><text x="${T.pvLbl.x}" y="${T.pvLbl.y}" text-anchor="end" font-family="Arial" font-weight="700" font-size="${T.pvLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">PV</text>${card.family?`<text x="${T.fam.x}" y="${T.fam.y}" text-anchor="middle" dominant-baseline="middle" transform="rotate(90,${T.fam.x},${T.fam.y})" font-family="Arial Black,Arial" font-weight="900" font-size="${T.fam.size}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${card.family}</text>`:""} ${lx}<text x="${T.atkLbl.x}" y="${T.atkLbl.y}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${T.atkLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">ATK</text>${wt(T.atkVal.x,T.atkVal.y,card.attack,T.atkVal.size,"middle")}<text x="${T.defLbl.x}" y="${T.defLbl.y}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${T.defLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">DEF</text>${wt(T.defVal.x,T.defVal.y,card.defense,T.defVal.size,"middle")}</svg>`;
+  const svg=`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${VW}" height="${VH}" viewBox="0 0 ${VW} ${VH}"><defs>${card.photoUrl?'<clipPath id="ec"><rect x="'+Z.photo.x+'" y="'+Z.photo.y+'" width="'+Z.photo.w+'" height="'+Z.photo.h+'" rx="'+Z.photo.rx+'"/></clipPath>':""}</defs>${card.photoUrl?'<image href="'+card.photoUrl+'" x="'+Z.photo.x+'" y="'+Z.photo.y+'" width="'+Z.photo.w+'" height="'+Z.photo.h+'" preserveAspectRatio="xMidYMid slice" clip-path="url(#ec)"/>':""} ${evo}<rect x="${tb.x}" y="${tb.y}" width="${tb.w}" height="${tb.h}" rx="${tb.rx}" fill="${tbCol}" fill-opacity="${tbOp}"/>${card.rarityId==="C"?`<text x="308" y="820" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-size="8" fill="rgba(255,255,255,0.28)" letter-spacing="1.5">${card.cardNumber}/${card.totalCards}</text>`:`<rect x="228" y="795" width="160" height="16" rx="8" fill="${rar.color}" fill-opacity="0.8"/><text x="308" y="803" text-anchor="middle" dominant-baseline="middle" font-family="Arial" font-weight="900" font-size="10" fill="#fff" letter-spacing="1.5">${rar.label.toUpperCase()}</text><text x="308" y="826" text-anchor="middle" dominant-baseline="middle" font-family="monospace" font-size="9" fill="rgba(255,255,255,0.5)">${card.cardNumber}/${card.totalCards}</text>`}${wt(pos.nom.x,pos.nom.y,(card.name||"Nom de la carte").slice(0,20),T.nom.size,"start")}<text x="${T.pvVal.x}" y="${T.pvVal.y}" text-anchor="end" dominant-baseline="middle" font-family="Arial Black,Arial" font-weight="900" font-size="${T.pvVal.size}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${card.hp}</text><text x="${T.pvLbl.x}" y="${T.pvLbl.y}" text-anchor="end" font-family="Arial" font-weight="700" font-size="${T.pvLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">PV</text>${card.family?`<text x="${pos.fam.x}" y="${pos.fam.y}" text-anchor="middle" dominant-baseline="middle" transform="rotate(90,${pos.fam.x},${pos.fam.y})" font-family="Arial Black,Arial" font-weight="900" font-size="${T.fam.size}" fill="#fff" stroke="${stCol}" stroke-width="${stW}" stroke-linejoin="round" paint-order="stroke fill">${card.family}</text>`:""} ${lx}<text x="${pos.atkLbl.x}" y="${pos.atkLbl.y}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${T.atkLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">ATK</text>${wt(pos.atkVal.x,pos.atkVal.y,card.attack,T.atkVal.size,"middle")}<text x="${pos.defLbl.x}" y="${pos.defLbl.y}" text-anchor="middle" font-family="Arial" font-weight="700" font-size="${T.defLbl.size}" fill="rgba(255,255,255,0.85)" stroke="${stCol}" stroke-width="${stW*0.5}" paint-order="stroke fill">DEF</text>${wt(pos.defVal.x,pos.defVal.y,card.defense,T.defVal.size,"middle")}</svg>`;
   const overlayBlob=new Blob([svg],{type:"image/svg+xml"}),overlayUrl=URL.createObjectURL(overlayBlob);
 
   // Générer le SVG de fond normalisé (+ couleur éventuelle des contours)
@@ -872,8 +901,8 @@ export default function App(){
       <div style={{fontSize:9,color:"#bbb",letterSpacing:3,textTransform:"uppercase",marginBottom:4,fontFamily:"sans-serif"}}>Aperçu temps réel</div>
       <div style={{fontSize:10,color:"#aaa",marginBottom:16,fontFamily:"sans-serif"}}>Glisse · Étire aux coins</div>
       {(()=>{const mw=Math.min(typeof window!=="undefined"?window.innerWidth-32:360,420);return<TCGCard card={form} scale={mw/VW} svgUrl={SVG_URL} editable={true} onUpdateTextbox={v=>setForm(p=>({...p,...v}))}/>;})()}
-      {(form.tbX!=null||form.tbY!=null||form.tbW!=null||form.tbH!=null)&&
-        <button onClick={()=>setForm(p=>({...p,tbX:null,tbY:null,tbW:null,tbH:null}))}
+      {(form.tbX!=null||form.tbY!=null||form.tbW!=null||form.tbH!=null||form.nomX!=null||form.atkX!=null||form.defX!=null||form.famX!=null)&&
+        <button onClick={()=>setForm(p=>({...p,tbX:null,tbY:null,tbW:null,tbH:null,nomX:null,nomY:null,atkX:null,atkY:null,defX:null,defY:null,famX:null,famY:null}))}
           style={{marginTop:16,background:"#fff",border:"1.5px solid #ddd",borderRadius:8,padding:"7px 18px",cursor:"pointer",fontSize:12,fontWeight:700,color:"#888",fontFamily:"sans-serif"}}>
           ↺ Réinitialiser position
         </button>
